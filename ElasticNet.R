@@ -343,3 +343,54 @@ Wpqfinder <- function(city, num_points, Dpq, K) {
   }
   return(W)
 }
+
+
+#########################Elastic Net Function###################
+#The Elastic Net Function takes in a table with city coordinates, and returns a table of xy coordinates
+#for the net every 500 iterations. This allows the net movement to be examined, and the final path to
+#be calculated using the last two columns of the output from the elastic net function and the 
+#"pathfromnetgenerator"
+elasticnet <- function(table) {
+  table <- cbind(table$V2, table$V3)
+  table <- datasetnormaliser(table)
+  num_cities <- nrow(table)
+  num_points <- 2*num_cities
+  alpha <- 0.3
+  beta <- 2.5
+  K <- 0.2
+  
+  quarter <- round(num_points/4)
+  num_points <- 4*quarter
+  center_coord <- c(mean(table[,1]), mean(table[,2]))
+  angle <- 1.5708/quarter
+  r <- min(c((max(table[,1])- mean(table[,1]))/3, (max(table[,2])- mean(table[,2]))/3))
+  r <- 0.1
+  
+  P <- table
+  Q <- startingcircle(quarter, angle, r, center_coord)
+  Qtotal <- Q
+  
+  i <- 0
+  pathlength <- length(pathfromnetgenerator(Q,P))
+  while (pathlength != num_cities) {
+    i <- i+1
+    Dpq <- sapply(1:num_cities, Dpqfinder, num_points, P, Q)
+    Wpq <- sapply(1:num_cities, Wpqfinder, num_points, Dpq, K)
+    Qdxy <- (sapply(1:num_points, dxyfinder, num_points, num_cities, P, Q, Wpq, alpha, beta, K))
+    Qdxy <- t(Qdxy)
+    Q <- Q+Qdxy
+    if (i %% 500 == 0 ) {
+      Qtotal <- cbind(Qtotal, Q)
+      print(pathlength)
+    }
+    if (i %% 50 == 0) {
+      K <- 0.99*K
+    }
+    pathlength <- length(pathfromnetgenerator(Q,P))
+  }
+  Qtotal <- cbind(Qtotal, Q)
+  print(enetdistance(Q))
+  return(Qtotal)
+}
+
+
