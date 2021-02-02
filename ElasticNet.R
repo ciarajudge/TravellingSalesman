@@ -42,13 +42,6 @@ for (file in tsp_files) {
 hist(filelengths, breaks = (30))
 
 
-###########################Create Maps for General Tuning####################
-num_cities <- 20
-map <- data.frame(ID = 1:num_cities, V2 = runif(num_cities), V3 = runif(num_cities))
-map2 <- data.frame(ID = 1:num_cities, V2 = runif(num_cities), V3 = runif(num_cities))
-map3 <- data.frame(ID = 1:num_cities, V2 = runif(num_cities), V3 = runif(num_cities))
-
-
 ###########################Import Map and Solution###########################
 problemparser <- function(filename) {
   rev1 <- data.frame(read.table(paste0(c("TSP_datasets/", filename, ".tsp"), collapse = ""), header = F, sep = "", fill = TRUE, stringsAsFactors = F))
@@ -110,83 +103,6 @@ distancefunction <- function(vector, table) {
   return(distance)
 }
 
-#Adjustpath takes an input vector with a path and randomly adjusts it. Used in SA.
-adjustpath <- function(vector) {
-  points <- sample(1:length(vector), 2, replace = FALSE)
-  vector[points[1]:points[2]] <- vector[points[2]:points[1]]
-  return(vector)
-}
-
-#swappath takes an input vector with a path and randomly swaps two cities. Used in SA.
-swappath <- function(vector, length) {
-  points <- sample(1:length(vector), 1, replace = FALSE)
-  vector <- paste0(c(vector[points[1]:length(vector)], vector[1:(points[1]-1)]))
-  vector[1:length] <- vector[length:1]
-  return(vector)
-}
-
-#mutate takes a vector with a path and randomly swaps two cities n times where n = mutation rate. Used in GA.
-mutate <- function(vector, rate) {
-  for (i in 1:rate) {
-    points <- sample(1:length(vector), 2, replace = FALSE)
-    a <- vector[points[1]]
-    b <- vector[points[2]]
-    vector[points[1]] <- b
-    vector[points[2]] <- a
-    return(vector)
-  }
-}
-
-#crossover takes two vectors and produces two new vectors descended 
-#from a crossover event of the inputs. Used in GA.
-crossover <- function(vector1, vector2) {
-  point <- sample(1:length(vector1), 1)
-  newvec1 <- c(vector1[0:point])
-  newvec2 <- c()
-  for (x in vector2){
-    if (!(x %in% newvec1)) {
-      newvec1 <- append(newvec1, x)
-    }
-    else {
-      newvec2 <- append(newvec2, x)
-    }
-  }
-  for (x in vector1) {
-    if (!(x %in% newvec2)) {
-      newvec2 <- append(newvec2, x)
-    }
-  }
-  return(list(newvec1, newvec2))
-}
-
-#newpopulation takes a population of paths, their fitness and a mutation rate, and uses
-#the functions crossover and mutate to create new, theoretically fitter, population. Used in GA.
-newpopulation <- function(population, fitness, mutationrate) {
-  newpop <- list()
-  sumf <- sum(fitness)
-  for (i in 1:length(population)) {
-    fit <- fitness[i] / sumf
-    fitness[i] <- fit 
-  }
-  for (i in seq(1,length(fitness), 2)) {
-    rand1 <- runif(1)
-    rand2 <- runif(1)
-    index1 <- 0
-    index2 <- 0
-    while (isTRUE(rand1 > 0)) {
-      index1 <- index1 + 1
-      rand1 <- rand1 - fitness[index1]
-    }
-    while (isTRUE(rand2 > 0)) {
-      index2 <- index2 + 1
-      rand2 <- rand2 - fitness[index2]
-    }
-    newmembers <- crossover(population[[index1]], population[[index2]])
-    newpop[[i]] <- mutate(newmembers[[1]], mutationrate)
-    newpop[[i+1]] <- mutate(newmembers[[2]], mutationrate)
-  }
-  return(newpop)
-}
 
 #plottable takes an order of cities and a table with their coordinates and maps
 #the path through all the cities. Used in SA, GA and EN.
