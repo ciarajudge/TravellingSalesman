@@ -110,21 +110,6 @@ distancefunction <- function(vector, table) {
   return(distance)
 }
 
-#Adjustpath takes an input vector with a path and randomly adjusts it. Used in SA.
-adjustpath <- function(vector) {
-  points <- sample(1:length(vector), 2, replace = FALSE)
-  vector[points[1]:points[2]] <- vector[points[2]:points[1]]
-  return(vector)
-}
-
-#swappath takes an input vector with a path and randomly swaps two cities. Used in SA.
-swappath <- function(vector, length) {
-  points <- sample(1:length(vector), 1, replace = FALSE)
-  vector <- paste0(c(vector[points[1]:length(vector)], vector[1:(points[1]-1)]))
-  vector[1:length] <- vector[length:1]
-  return(vector)
-}
-
 #mutate takes a vector with a path and randomly swaps two cities n times where n = mutation rate. Used in GA.
 mutate <- function(vector, rate) {
   for (i in 1:rate) {
